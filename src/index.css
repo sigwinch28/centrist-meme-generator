@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.text-piss-yellow {
+  color: rgb(224, 94, 0);
+}
+
+
+.text-centrist-headline {
+  color: rgb(18, 18, 18);
+}
+
+.bg-centrist-yellow {
+  background-color: rgb(255, 229, 0);
+}
+
+.color-centrist-blue {
+  color: rgb(5, 41, 98);
+}
+
+.bg-centrist-blue {
+  background-color: rgb(5, 41, 98)
+}
+
+.bg-centrist-header {
+  background-color: #fef9f5;
+}
+
+
+.bg-centrist-lines {
+  background-image: repeating-linear-gradient( to bottom,#DCDCDC,#DCDCDC 1px,transparent 1px,transparent 0.25rem );
+  background-repeat: repeat-x;
+  background-position: top;
+  background-size: 1px calc(0.25rem * 7 + 1px);
+  height: calc(0.25rem * 7 + 1px);
+
+}
+
+.w-article {
+  width: 42rem;
+}
