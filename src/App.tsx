@@ -12,7 +12,7 @@ import "@fontsource/merriweather/700.css"
 
 const App: React.FC = () => {
   const [headline, setHeadline] = useState("I would be 20 points ahead.");
-  const [pundit, setPundit] = useState("Jeremy Corbyn");
+  const [pundit, setPundit] = useState("Sad Pepe");
   const [mugshot, setMugshot] = useState("");
 
   const articleRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ const App: React.FC = () => {
     <div id="App" className="">
       <header className="bg-centrist-blue w-100 font-serif font-bold">
         <div className="mx-auto lg:pr-4 lg:pl-20 container">
-          <h1 className="text-3xl lg:text-6xl text-white px-4 py-6">Centrist Piss Boiler</h1>
+          <h1 className="text-3xl lg:text-6xl text-white px-4 py-6">The Gatekeeper</h1>
         </div>
       </header>
       <div className="mx-auto lg:pr-4 lg:pl-20 container">

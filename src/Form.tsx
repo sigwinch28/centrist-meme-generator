@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
+import pepe from './images/pepe.png';
 
 interface FormProps {
     headline: string;
@@ -16,70 +17,109 @@ interface PunditMugshotInputProps {
 enum MugshotMethod {
     None = 0,
     File,
+    Pepe,
     URL
 }
 
-const PunditMugshotInput: React.FC<PunditMugshotInputProps> = ({ onMugshotChange }: PunditMugshotInputProps) => {
-    const [method, setMethod] = useState<MugshotMethod>(MugshotMethod.None);
-    const [fileUrl, setFileUrl] = useState<string>("");
-    const [externalUrl, setExternalUrl] = useState<string>("");
+type Action =
+    | { kind: "changeMethod", method: MugshotMethod }
+    | { kind: "changeFile", file: string }
+    | { kind: "changeUrl", url: string}
 
-    const handleMethodChange = (method: MugshotMethod) => {
-        setMethod(method)
-        if (method === MugshotMethod.URL) {
-            onMugshotChange(externalUrl)
-        } else if (method === MugshotMethod.File) {
-            onMugshotChange(fileUrl)
-        } else if (method === MugshotMethod.None) {
-            onMugshotChange("")
+const PunditMugshotInput: React.FC<PunditMugshotInputProps> = ({ onMugshotChange }: PunditMugshotInputProps) => {
+
+    interface State {
+        method: MugshotMethod,
+        file: string,
+        url: string
+    }
+
+    const initialState : State = {
+        method: MugshotMethod.Pepe,
+        file: "",
+        url: "" 
+    }
+
+    const reducer = (state : State, action : Action) : State => {
+        switch (action.kind) {
+            case "changeMethod":
+                return {...state, method: action.method};
+            case "changeFile":
+                return {...state, file: action.file};
+            case "changeUrl":
+                return {...state, url: action.url};
         }
     }
 
-    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setExternalUrl(e.target.value)
-        if (method === MugshotMethod.URL) {
-            onMugshotChange(e.target.value)
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    useEffect(() => {
+        switch (state.method) {
+            case MugshotMethod.None:
+                onMugshotChange("");
+                break;
+            case MugshotMethod.Pepe:
+                onMugshotChange(pepe);
+                break;
+            case MugshotMethod.File:
+                onMugshotChange(state.file);
+                break;
+            case MugshotMethod.URL:
+                onMugshotChange(state.url);
+                break;
         }
+    }, [state, onMugshotChange]);
+
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch({kind: 'changeUrl', url: e.target.value})
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let file = e.target.files?.[0];
         if (file) {
             let url = URL.createObjectURL(file);
-            setFileUrl(url)
-            if (method === MugshotMethod.File) {
-                onMugshotChange(url)
-            }
+            dispatch({kind: 'changeFile', file: url});
         }
         
     }
+
+    const radioButton = (method: MugshotMethod) =>
+        <input type="radio" name="method" value={method} checked={state.method === method} onChange={(_) => dispatch({kind: "changeMethod", method: method})} className="mr-1" />
 
     return (
         <div>
 
             <div>
                 <label className="pr-2">
-                    <input type="radio" name="method" value={method} checked={method === MugshotMethod.None} onChange={(_) => handleMethodChange(MugshotMethod.None)} className="mr-1" />
+                    {radioButton(MugshotMethod.None)}
                     None
                     </label>
             </div>
 
             <div>
                 <label className="pr-2">
-                    <input type="radio" name="method" value={method} checked={method === MugshotMethod.URL} onChange={(_) => handleMethodChange(MugshotMethod.URL)} className="mr-1" />
+                    {radioButton(MugshotMethod.Pepe)}
+                    Sad pepe
+                    </label>
+            </div>
+
+            <div>
+                <label className="pr-2">
+                    {radioButton(MugshotMethod.URL)}
                     URL
                     </label>
-                <input type="text" disabled={method !== MugshotMethod.URL} onChange={handleUrlChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+                <input type="text" disabled={state.method !== MugshotMethod.URL} onChange={handleUrlChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
             </div>
 
 
 
             <div>
                 <label className="pr-2">
-                    <input type="radio" name="method" value={method} checked={method === MugshotMethod.File} onChange={(_) => handleMethodChange(MugshotMethod.File)} className="mr-1" />
+                    {radioButton(MugshotMethod.File)}
                     File
                     </label>
-                <input type="file" disabled={method !== MugshotMethod.File} onChange={handleFileChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+                <input type="file" disabled={state.method !== MugshotMethod.File} onChange={handleFileChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
             </div>
         </div>
     )
