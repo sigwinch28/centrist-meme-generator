@@ -51,6 +51,10 @@ code {
 
 }
 
+.min-w-article {
+  min-width: 42rem;
+}
+
 .w-article {
   width: 42rem;
 }

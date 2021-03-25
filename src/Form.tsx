@@ -1,148 +1,154 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import {ArticleProps} from './Article';
 import pepe from './images/pepe.png';
 
-interface FormProps {
-    headline: string;
-    pundit: string;
-    mugshot: string;
-    onHeadlineChange: (value: string) => void;
-    onPunditChange: (value: string) => void;
-    onMugshotChange: (value: string) => void;
+
+
+interface InputProps {
+    onChange: (value: string) => void;
+    disabled: boolean;
 }
 
-interface PunditMugshotInputProps {
-    onMugshotChange: (value: string) => void;
+const FileInput: React.FC<InputProps> = ({onChange, disabled}: InputProps) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let file = e.target.files?.[0];
+        if (file) {
+            let url = URL.createObjectURL(file);
+            onChange(url);
+        }
+        
+    }
+
+    return (
+        <input type="file" disabled={disabled} onChange={handleChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+    )
 }
 
-enum MugshotMethod {
+const UrlInput: React.FC<InputProps> = ({onChange, disabled} : InputProps) => {
+    const [url, setUrl] = useState("");
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUrl(e.target.value);
+        onChange(e.target.value);
+    }
+
+    return (
+        <input type="text" disabled={disabled} onChange={handleChange} value={url} className="border-2 border-gray-400 p-2 focus:ring-4" />
+    )
+}
+
+interface MugshotInputProps {
+    onChange: (value: string) => void;
+}
+
+enum MugshotInputSource {
     None = 0,
     File,
     Pepe,
     URL
 }
 
-type Action =
-    | { kind: "changeMethod", method: MugshotMethod }
-    | { kind: "changeFile", file: string }
-    | { kind: "changeUrl", url: string}
 
-const PunditMugshotInput: React.FC<PunditMugshotInputProps> = ({ onMugshotChange }: PunditMugshotInputProps) => {
-
-    interface State {
-        method: MugshotMethod,
-        file: string,
-        url: string
-    }
-
-    const initialState : State = {
-        method: MugshotMethod.Pepe,
-        file: "",
-        url: "" 
-    }
-
-    const reducer = (state : State, action : Action) : State => {
-        switch (action.kind) {
-            case "changeMethod":
-                return {...state, method: action.method};
-            case "changeFile":
-                return {...state, file: action.file};
-            case "changeUrl":
-                return {...state, url: action.url};
-        }
-    }
-
-
-    const [state, dispatch] = useReducer(reducer, initialState);
+const MugshotInput: React.FC<MugshotInputProps> = ({ onChange }: MugshotInputProps) => {
+    const [source, setSource] = useState(MugshotInputSource.Pepe);
+    const [url, setUrl] = useState("");
+    const [file, setFile] = useState("");
 
     useEffect(() => {
-        switch (state.method) {
-            case MugshotMethod.None:
-                onMugshotChange("");
+        switch (source) {
+            case MugshotInputSource.None:
+                onChange("");
                 break;
-            case MugshotMethod.Pepe:
-                onMugshotChange(pepe);
+            case MugshotInputSource.Pepe:
+                onChange(pepe);
                 break;
-            case MugshotMethod.File:
-                onMugshotChange(state.file);
+            case MugshotInputSource.File:
+                onChange(file);
                 break;
-            case MugshotMethod.URL:
-                onMugshotChange(state.url);
+            case MugshotInputSource.URL:
+                onChange(url);
                 break;
         }
-    }, [state, onMugshotChange]);
+    }, [onChange, source, url, file]);
 
-    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch({kind: 'changeUrl', url: e.target.value})
-    }
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let file = e.target.files?.[0];
-        if (file) {
-            let url = URL.createObjectURL(file);
-            dispatch({kind: 'changeFile', file: url});
-        }
-        
-    }
-
-    const radioButton = (method: MugshotMethod) =>
-        <input type="radio" name="method" value={method} checked={state.method === method} onChange={(_) => dispatch({kind: "changeMethod", method: method})} className="mr-1" />
+    const radioButton = (inputSource: MugshotInputSource) =>
+        <input
+            type="radio"
+            name="source" 
+            value={inputSource} 
+            checked={source === inputSource} 
+            onChange={() => setSource(inputSource)}
+            className="mr-1"
+        />
 
     return (
         <div>
-
             <div>
                 <label className="pr-2">
-                    {radioButton(MugshotMethod.None)}
+                    {radioButton(MugshotInputSource.None)}
                     None
                     </label>
             </div>
 
             <div>
                 <label className="pr-2">
-                    {radioButton(MugshotMethod.Pepe)}
+                    {radioButton(MugshotInputSource.Pepe)}
                     Sad pepe
                     </label>
             </div>
 
             <div>
                 <label className="pr-2">
-                    {radioButton(MugshotMethod.URL)}
+                    {radioButton(MugshotInputSource.URL)}
                     URL
                     </label>
-                <input type="text" disabled={state.method !== MugshotMethod.URL} onChange={handleUrlChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+                <UrlInput
+                    disabled={source !== MugshotInputSource.URL}
+                    onChange={setUrl}
+                />
             </div>
-
-
 
             <div>
                 <label className="pr-2">
-                    {radioButton(MugshotMethod.File)}
+                    {radioButton(MugshotInputSource.File)}
                     File
                     </label>
-                <input type="file" disabled={state.method !== MugshotMethod.File} onChange={handleFileChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+                <FileInput
+                    disabled={source !== MugshotInputSource.File}
+                    onChange={setFile}
+                />
             </div>
         </div>
     )
 }
 
-const Form: React.FC<FormProps> = ({ headline, pundit, onHeadlineChange, onPunditChange, onMugshotChange }: FormProps) => {
-    const handleHeadlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onHeadlineChange(e.target.value);
-    };
+interface FormProps {
+    article: ArticleProps;
+    onChange: React.Dispatch<React.SetStateAction<ArticleProps>>
+}
 
-    const handlePunditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onPunditChange(e.target.value);
-    }
+
+const Form: React.FC<FormProps> = ({ article, onChange }: FormProps) => {
+    const handleHeadlineChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange((article) => ({...article, headline: e.target.value}));
+    }, [onChange]);
+
+    const handlePunditChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange((article) => ({...article, pundit: e.target.value}));
+    }, [onChange]);
+
+    const handleMugshotChange = useCallback((mugshot: string) => {
+            onChange((article) => ({...article, mugshot: mugshot}));
+    }, [onChange]);
 
     return (
         <form className=" border-t border-b lg:border-l lg:border-r px-4 p-4 my-4 text-lg">
             <h2 className="font-bold mb-1">Headline</h2>
-            <input type="text" value={headline} onChange={handleHeadlineChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+            <input type="text" value={article.headline} onChange={handleHeadlineChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
             <br />
             <h2 className="font-bold mt-4 mb-1">Pundit Name</h2>
-            <input type="text" value={pundit} onChange={handlePunditChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
+            <input type="text" value={article.pundit} onChange={handlePunditChange} className="border-2 border-gray-400 p-2 focus:ring-4" />
             <h2 className="font-bold mt-4 mb-1">Pundit Mugshot</h2>
-            <PunditMugshotInput onMugshotChange={onMugshotChange} />
+            <MugshotInput onChange={handleMugshotChange}/>
         </form>
     )
 }
