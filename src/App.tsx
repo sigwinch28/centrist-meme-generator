@@ -11,6 +11,17 @@ import "@fontsource/merriweather/300.css";
 import "@fontsource/merriweather/300-italic.css";
 import "@fontsource/merriweather/700.css";
 
+const links = [
+  {
+    href: "https://twitter.com/intent/tweet?text=%40sigwinch28%20",
+    children: "Feedback",
+  },
+  {
+    href: "https://github.com/sigwinch28/centrist-meme-generator",
+    children: "Source code",
+  },
+];
+
 const App: React.FC = () => {
   const [article, setArticle] = useState({
     headline: "I would be 20 points ahead",
@@ -49,20 +60,26 @@ const App: React.FC = () => {
           <Form article={article} onChange={setArticle} />
         </div>
       </main>
-      <footer className="mx-auto lg:ml-4 lg:ml-20 pl-4 my-4 container min-w-article">
+      <footer className="mx-auto lg:ml-4 lg:ml-20 pl-4 my-2 container min-w-article">
         <div>
-          <Button onClick={onSave} className="my-2">
-            Save →
-          </Button>
+          <Button onClick={onSave}>Save →</Button>
         </div>
-        <div>
-          <a
-            className="underline text-gray-500 hover:text-gray-700"
-            target="blank"
-            href={"https://twitter.com/intent/tweet?text=%40sigwinch28%20"}
-          >
-            Feedback
-          </a>
+        <div className="mt-4">
+          {links.map(({ href, children }, i) => (
+            <span>
+              <a
+                key={i}
+                className={
+                  "underline text-gray-500 hover:text-gray-700 " +
+                  (i > 0 && "ml-4")
+                }
+                target="blank"
+                href={href}
+              >
+                {children}
+              </a>
+            </span>
+          ))}
         </div>
       </footer>
     </div>
