@@ -59,7 +59,7 @@ const App: React.FC = () => {
           <a
             className="underline text-gray-500 hover:text-gray-700"
             target="blank"
-            href={"https://twitter.com/intent/tweet?text=%40sigwinch28"}
+            href={"https://twitter.com/intent/tweet?text=%40sigwinch28%20"}
           >
             Feedback
           </a>
