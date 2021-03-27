@@ -31,13 +31,18 @@ const App: React.FC = () => {
 
   const articleRef = useRef<HTMLDivElement>(null);
 
-  const onSave = () => {
+  const onSave = async () => {
     if (articleRef.current) {
-      domtoimage.toBlob(articleRef.current).then((blob: Blob) => {
-        let rawName = `${article.pundit} _ ${article.headline}`;
-        let safeName = rawName.replace(/[^a-z0-9]/gi, "_");
-        saveAs(blob, `${safeName}.png`);
-      });
+      let ref = articleRef.current;
+      // call twice because of Safari security issues. Weird.
+      await domtoimage
+        .toBlob(ref)
+        .then((_) => domtoimage.toBlob(ref))
+        .then((blob: Blob) => {
+          let rawName = `${article.pundit} _ ${article.headline}`;
+          let safeName = rawName.replace(/[^a-z0-9]/gi, "_");
+          saveAs(blob, `${safeName}.png`);
+        });
     }
   };
 
