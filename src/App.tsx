@@ -11,6 +11,10 @@ import "@fontsource/merriweather/300.css";
 import "@fontsource/merriweather/300-italic.css";
 import "@fontsource/merriweather/700.css";
 
+const pundits = ["Pepe the Frog", "Your Mum", "Your Da"];
+
+const headlines = ["ouuuh i just got 20 points ahead", "Ding Dong x"];
+
 const links = [
   {
     href: "https://twitter.com/intent/tweet?text=%40sigwinch28%20",
@@ -62,7 +66,12 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="min-w-article">
-          <Form article={article} onChange={setArticle} />
+          <Form
+            article={article}
+            onChange={setArticle}
+            headlines={headlines}
+            pundits={pundits}
+          />
         </div>
       </main>
       <footer className="mx-auto lg:ml-4 lg:ml-20 pl-4 my-2 container min-w-article">

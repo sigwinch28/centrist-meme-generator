@@ -4,6 +4,45 @@ import Button from "./Button";
 import pepeSad from "./images/pepe-sad.png";
 import pepeLaugh from "./images/pepe-laugh.png";
 
+interface RandomTextInputProps {
+  onChange: (value: string) => void;
+  value: string;
+  data: string[];
+}
+
+const RandomTextInput: React.FC<RandomTextInputProps> = ({
+  onChange,
+  value,
+  data,
+}: RandomTextInputProps) => {
+  let [tainted, setTainted] = useState(false);
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTainted(true);
+    onChange(e.target.value);
+  };
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!tainted || window.confirm("Are you sure?")) {
+      const elem = data[Math.floor(Math.random() * data.length)];
+      setTainted(false);
+      onChange(elem);
+    }
+  };
+
+  return (
+    <span>
+      <input
+        type="text"
+        value={value}
+        onChange={onInputChange}
+        className="border-2 border-gray-400 p-2 focus:ring-4 mr-4"
+      />
+      <Button onClick={onClick}>Random</Button>
+    </span>
+  );
+};
+
 interface InputProps {
   onChange: (value: string) => void;
   disabled: boolean;
@@ -51,7 +90,13 @@ const UrlInput: React.FC<InputProps> = ({ onChange, disabled }: InputProps) => {
         value={url}
         className="border-2 border-gray-400 p-2 focus:ring-4"
       />
-      <Button onClick={handleLoad} className="ml-4 bg-centrist-blue text-white">
+      <Button
+        onClick={handleLoad}
+        className="ml-4"
+        disabled={disabled}
+        bgColor={disabled ? "gray-500" : null}
+        hoverBgColor={disabled ? "gray-500" : null}
+      >
         Load
       </Button>
     </span>
@@ -164,23 +209,24 @@ const MugshotInput: React.FC<MugshotInputProps> = ({
 
 interface FormProps {
   article: ArticleProps;
+  headlines: string[];
+  pundits: string[];
   onChange: React.Dispatch<React.SetStateAction<ArticleProps>>;
 }
 
-const Form: React.FC<FormProps> = ({ article, onChange }: FormProps) => {
-  const handleHeadlineChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange((article) => ({ ...article, headline: e.target.value }));
-    },
-    [onChange]
-  );
+const Form: React.FC<FormProps> = ({
+  article,
+  onChange,
+  headlines,
+  pundits,
+}: FormProps) => {
+  const handleHeadlineChange = (headline: string) => {
+    onChange((article) => ({ ...article, headline: headline }));
+  };
 
-  const handlePunditChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange((article) => ({ ...article, pundit: e.target.value }));
-    },
-    [onChange]
-  );
+  const handlePunditChange = (pundit: string) => {
+    onChange((article) => ({ ...article, pundit: pundit }));
+  };
 
   const handleMugshotChange = useCallback(
     (mugshot: string) => {
@@ -192,20 +238,19 @@ const Form: React.FC<FormProps> = ({ article, onChange }: FormProps) => {
   return (
     <form className=" border-t border-b lg:border-l lg:border-r px-4 p-4 my-4 text-lg">
       <h2 className="font-bold mb-1">Headline</h2>
-      <input
-        type="text"
-        value={article.headline}
+      <RandomTextInput
         onChange={handleHeadlineChange}
-        className="border-2 border-gray-400 p-2 focus:ring-4"
+        value={article.headline}
+        data={headlines}
       />
-      <br />
+
       <h2 className="font-bold mt-4 mb-1">Pundit Name</h2>
-      <input
-        type="text"
-        value={article.pundit}
+      <RandomTextInput
         onChange={handlePunditChange}
-        className="border-2 border-gray-400 p-2 focus:ring-4"
+        value={article.pundit}
+        data={pundits}
       />
+
       <h2 className="font-bold mt-4 mb-1">Pundit Mugshot</h2>
       <MugshotInput onChange={handleMugshotChange} />
     </form>
