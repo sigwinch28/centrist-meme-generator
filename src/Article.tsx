@@ -1,15 +1,17 @@
 import React from "react";
 
 export type ArticleProps = {
+  headline: string;
   pundit: string;
   mugshot: string;
-  headline: string;
+  flippedMugshot?: boolean;
 };
 
 const Article: React.FC<ArticleProps> = ({
+  headline,
   pundit,
   mugshot,
-  headline,
+  flippedMugshot,
 }: ArticleProps) => (
   <article className="bg-centrist-header px-4 py-2 w-article font-serif">
     <header className="text-lg leading-9 break-words">
@@ -28,7 +30,12 @@ const Article: React.FC<ArticleProps> = ({
 
       <div className="flex justify-end -mt-8 -mb-7 overflow-hidden">
         {mugshot !== "" ? (
-          <img src={mugshot} className="-mr-5 h-44" alt={""} />
+          <img
+            src={mugshot}
+            className="-mr-5 h-44"
+            alt={""}
+            style={flippedMugshot ? { transform: "scaleX(-1)" } : {}}
+          />
         ) : (
           <div className="-mr-5 h-44"></div>
         )}

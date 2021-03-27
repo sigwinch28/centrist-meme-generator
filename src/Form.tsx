@@ -355,10 +355,19 @@ interface FormProps {
   headline: string;
   pundit: string;
   mugshot: string;
-  onChange: (key: "headline" | "pundit" | "mugshot", value: string) => void;
+  flippedMugshot: boolean;
+  onChange: (
+    key: "headline" | "pundit" | "mugshot" | "flippedMugshot",
+    value: any
+  ) => void;
 }
 
-const Form: React.FC<FormProps> = ({ headline, pundit, onChange }) => {
+const Form: React.FC<FormProps> = ({
+  headline,
+  pundit,
+  flippedMugshot,
+  onChange,
+}) => {
   const headlineChangeHandler = useCallback(
     (value: string) => onChange("headline", value),
     [onChange]
@@ -374,6 +383,12 @@ const Form: React.FC<FormProps> = ({ headline, pundit, onChange }) => {
     [onChange]
   );
 
+  const flippedMugshotChangeHandler = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      onChange("flippedMugshot", e.target.checked),
+    [onChange]
+  );
+
   return (
     <form>
       <Field label="Hot take">
@@ -384,6 +399,15 @@ const Form: React.FC<FormProps> = ({ headline, pundit, onChange }) => {
       </Field>
       <Field label="Mugshot">
         <MugshotInput onChange={mugshotChangeHandler} />
+        <label>
+          <input
+            type="checkbox"
+            checked={flippedMugshot}
+            onChange={flippedMugshotChangeHandler}
+            className="mr-2"
+          />
+          Flipped
+        </label>
       </Field>
     </form>
   );

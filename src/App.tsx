@@ -27,6 +27,7 @@ const App: React.FC = () => {
     headline: "ouuuh i just got 20 points ahead",
     pundit: "Pepe the Frog",
     mugshot: "",
+    flippedMugshot: false,
   });
 
   const articleRef = useRef<HTMLDivElement>(null);
@@ -47,7 +48,7 @@ const App: React.FC = () => {
   };
 
   const onChange = useCallback(
-    (key: keyof typeof state, value: string) =>
+    (key: keyof typeof state, value: any) =>
       setState((state) => ({ ...state, [key]: value })),
     [setState]
   );
