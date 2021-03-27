@@ -71,9 +71,8 @@ const App: React.FC = () => {
         </div>
         <div className="mt-4">
           {links.map(({ href, children }, i) => (
-            <span>
+            <span key={i}>
               <a
-                key={i}
                 className={
                   "underline text-gray-500 hover:text-gray-700 " +
                   (i > 0 && "ml-4")
