@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Article from "./Article";
 import Button from "./Button";
 import Form from "./Form";
@@ -10,10 +10,6 @@ import "@fontsource/merriweather/400.css";
 import "@fontsource/merriweather/300.css";
 import "@fontsource/merriweather/300-italic.css";
 import "@fontsource/merriweather/700.css";
-
-const pundits = ["Pepe the Frog", "Your Mum", "Your Da"];
-
-const headlines = ["ouuuh i just got 20 points ahead", "Ding Dong x"];
 
 const links = [
   {
@@ -27,7 +23,7 @@ const links = [
 ];
 
 const App: React.FC = () => {
-  const [article, setArticle] = useState({
+  const [state, setState] = useState({
     headline: "ouuuh i just got 20 points ahead",
     pundit: "Pepe the Frog",
     mugshot: "",
@@ -43,12 +39,18 @@ const App: React.FC = () => {
         .toBlob(ref)
         .then((_) => domtoimage.toBlob(ref))
         .then((blob: Blob) => {
-          let rawName = `${article.pundit} _ ${article.headline}`;
+          let rawName = `${state.pundit} _ ${state.headline}`;
           let safeName = rawName.replace(/[^a-z0-9]/gi, "_");
           saveAs(blob, `${safeName}.png`);
         });
     }
   };
+
+  const onChange = useCallback(
+    (key: keyof typeof state, value: string) =>
+      setState((state) => ({ ...state, [key]: value })),
+    [setState]
+  );
 
   return (
     <div id="App" className="">
@@ -62,22 +64,18 @@ const App: React.FC = () => {
       <main className="mx-auto lg:ml-4 lg:ml-20 container min-w-article">
         <div className="bg-centrist-header py-2">
           <div ref={articleRef} className="inline-block">
-            <Article {...article} />
+            <Article {...state} />
           </div>
         </div>
-        <div className="min-w-article">
-          <Form
-            article={article}
-            onChange={setArticle}
-            headlines={headlines}
-            pundits={pundits}
-          />
+        <div className="min-w-article border px-4 py-2 my-4 text-lg">
+          <Form {...state} onChange={onChange} />
+
+          <Button onClick={onSave} className="mt-2">
+            Save →
+          </Button>
         </div>
       </main>
       <footer className="mx-auto lg:ml-4 lg:ml-20 pl-4 my-2 container min-w-article">
-        <div>
-          <Button onClick={onSave}>Save →</Button>
-        </div>
         <div className="mt-4">
           {links.map(({ href, children }, i) => (
             <span key={i}>

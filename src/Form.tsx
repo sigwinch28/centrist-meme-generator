@@ -1,52 +1,127 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { ArticleProps } from "./Article";
+import React, { useEffect, useReducer, useCallback, useState } from "react";
 import Button from "./Button";
+
 import pepeSad from "./images/pepe-sad.png";
 import pepeLaugh from "./images/pepe-laugh.png";
 
-interface RandomTextInputProps {
-  onChange: (value: string) => void;
-  value: string;
-  data: string[];
+const presets: [string, string][] = [
+  ["Sad Pepe", pepeSad],
+  ["Laughing Pepe", pepeLaugh],
+];
+
+interface FieldProps {
+  label: React.ReactNode;
 }
 
-const RandomTextInput: React.FC<RandomTextInputProps> = ({
-  onChange,
-  value,
-  data,
-}: RandomTextInputProps) => {
-  let [tainted, setTainted] = useState(false);
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTainted(true);
-    onChange(e.target.value);
-  };
+const Field: React.FC<FieldProps> = ({ label, children }) => (
+  <div className="mt-2">
+    <h2 className="font-bold mb-1">{label}</h2>
+    {children}
+  </div>
+);
 
-  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (!tainted || window.confirm("Are you sure?")) {
-      const elem = data[Math.floor(Math.random() * data.length)];
-      setTainted(false);
-      onChange(elem);
+interface TextInputProps {
+  onChange?: (value: string) => void;
+  disabled?: boolean;
+  value?: string;
+}
+
+const TextInput: React.FC<TextInputProps> = ({ onChange, ...props }) => (
+  <input
+    type="text"
+    autoComplete="off"
+    autoCorrect="off"
+    autoCapitalize="off"
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+      onChange && onChange(e.target.value)
     }
-  };
+    className="border-2 border-gray-400 p-2 focus:ring-4"
+    {...props}
+  />
+);
 
-  return (
-    <span>
+interface RadioButtonProps {
+  name: string;
+  value: string;
+  label: React.ReactNode;
+  checked?: boolean;
+  onChange?: (value: string) => void;
+}
+
+const RadioButton: React.FC<RadioButtonProps> = ({
+  label,
+  onChange,
+  children,
+  ...props
+}) => (
+  <div className="my-2">
+    <label className="mr-2">
       <input
-        type="text"
-        value={value}
-        onChange={onInputChange}
-        className="border-2 border-gray-400 p-2 focus:ring-4 mr-4"
+        type="radio"
+        className="mr-2"
+        {...props}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange && onChange(e.target.value)
+        }
       />
-      <Button onClick={onClick}>Random</Button>
-    </span>
-  );
-};
+      {label}
+    </label>
+    {children}
+  </div>
+);
 
 interface InputProps {
   onChange: (value: string) => void;
   disabled: boolean;
 }
+
+const PresetInput: React.FC<InputProps> = ({
+  onChange,
+  disabled,
+}: InputProps) => (
+  <select
+    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+      onChange(e.target.value)
+    }
+    disabled={disabled}
+  >
+    {presets.map(([name, value], i) => (
+      <option key={i} value={value}>
+        {name}
+      </option>
+    ))}
+  </select>
+);
+
+const URLInput: React.FC<InputProps> = ({ onChange, disabled }: InputProps) => {
+  const [tainted, setTainted] = useState(false);
+  const [url, setUrl] = useState("");
+  const handleChange = (value: string) => {
+    setUrl(value);
+    setTainted(true);
+  };
+
+  const handleLoad = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    onChange(url);
+    setTainted(false);
+  };
+
+  return (
+    <span>
+      <TextInput disabled={disabled} onChange={handleChange} value={url} />
+      <Button
+        onClick={handleLoad}
+        className="ml-4"
+        disabled={disabled || !tainted}
+        bgColor={disabled || !tainted ? "gray-500" : null}
+        hoverBgColor={disabled || !tainted ? "gray-500" : null}
+      >
+        Load
+      </Button>
+    </span>
+  );
+};
 
 const FileInput: React.FC<InputProps> = ({
   onChange,
@@ -70,189 +145,180 @@ const FileInput: React.FC<InputProps> = ({
   );
 };
 
-const UrlInput: React.FC<InputProps> = ({ onChange, disabled }: InputProps) => {
-  const [url, setUrl] = useState("");
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
-  };
-
-  const handleLoad = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    onChange(url);
-  };
-
-  return (
-    <span>
-      <input
-        type="text"
-        disabled={disabled}
-        onChange={handleChange}
-        value={url}
-        className="border-2 border-gray-400 p-2 focus:ring-4"
-      />
-      <Button
-        onClick={handleLoad}
-        className="ml-4"
-        disabled={disabled}
-        bgColor={disabled ? "gray-500" : null}
-        hoverBgColor={disabled ? "gray-500" : null}
-      >
-        Load
-      </Button>
-    </span>
-  );
-};
-
 interface MugshotInputProps {
-  onChange: (value: string) => void;
+  onChange: (mugshot: string) => void;
 }
 
-enum MugshotInputSource {
-  None = 0,
-  File,
-  PepeLaugh,
-  PepeSad,
-  URL,
+enum MugshotSource {
+  None = "none",
+  Preset = "preset",
+  File = "file",
+  URL = "url",
 }
 
-const MugshotInput: React.FC<MugshotInputProps> = ({
-  onChange,
-}: MugshotInputProps) => {
-  const [currentSource, setCurrentSource] = useState(
-    MugshotInputSource.PepeLaugh
-  );
-  const [url, setUrl] = useState("");
-  const [file, setFile] = useState("");
+const MugshotInput: React.FC<MugshotInputProps> = ({ onChange }) => {
+  type Action =
+    | { kind: "setSource"; source: MugshotSource }
+    | { kind: MugshotSource.Preset; value: string }
+    | { kind: MugshotSource.File; value: string }
+    | { kind: MugshotSource.URL; value: string };
 
-  useEffect(() => {
-    switch (currentSource) {
-      case MugshotInputSource.None:
-        onChange("");
-        break;
-      case MugshotInputSource.PepeLaugh:
-        onChange(pepeLaugh);
-        break;
-      case MugshotInputSource.PepeSad:
-        onChange(pepeSad);
-        break;
-      case MugshotInputSource.File:
-        onChange(file);
-        break;
-      case MugshotInputSource.URL:
-        onChange(url);
-        break;
+  interface State {
+    current: string;
+    source: MugshotSource;
+    values: {
+      none: string;
+      preset: string;
+      file: string;
+      url: string;
+    };
+  }
+
+  const reducer = (state: State, action: Action): State => {
+    // Okay, so this is kind of grim but I also love it.
+    //
+    // If the source is changed, we:
+    // * update `state.source`
+    // * set `state.current = state.values[source]`
+    //
+    // If a value is changed, we:
+    // * set `state.values[source]` to that value
+    // * set `state.current` to that value if (and only if) `state.source === source`
+    switch (action.kind) {
+      case "setSource":
+        return {
+          ...state,
+          source: action.source,
+          current: state.values[action.source],
+        };
+      default:
+        if (state.source === action.kind) {
+          return {
+            ...state,
+            values: { ...state.values, [action.kind]: action.value },
+            current: action.value,
+          };
+        } else {
+          return {
+            ...state,
+            values: { ...state.values, [action.kind]: action.value },
+          };
+        }
     }
-  }, [onChange, currentSource, url, file]);
+  };
 
-  const inputs = [
-    {
-      source: MugshotInputSource.None,
-      label: "None",
-      input: null,
+  // Default to the first preset
+  const initialState: State = {
+    current: presets[0][1],
+    source: MugshotSource.Preset,
+    values: {
+      none: "",
+      preset: presets[0][1],
+      file: "",
+      url: "",
     },
-    {
-      source: MugshotInputSource.PepeLaugh,
-      label: "Lauging Pepe",
-      input: null,
-    },
-    {
-      source: MugshotInputSource.PepeSad,
-      label: "Sad Pepe",
-      input: null,
-    },
-    {
-      source: MugshotInputSource.URL,
-      label: "URL",
-      input: (
-        <UrlInput
-          disabled={currentSource !== MugshotInputSource.URL}
-          onChange={setUrl}
-        />
-      ),
-    },
-    {
-      source: MugshotInputSource.File,
-      label: "File",
-      input: (
-        <FileInput
-          disabled={currentSource !== MugshotInputSource.File}
-          onChange={setFile}
-        />
-      ),
-    },
-  ];
+  };
 
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  // Call the `onChange` whenever our state changes.
+  // Really the handler should only be called when `state.current` changes,
+  // but I can't see how to do that.
+  useEffect(() => {
+    onChange(state.current);
+  }, [state, onChange]);
+
+  const radioHandler = (source: MugshotSource) => () => {
+    dispatch({ kind: "setSource", source: source });
+  };
   return (
     <div>
-      <p className="italic">
-        Please use an image with a transparent background.
-      </p>
-      {inputs.map(({ source, label, input }) => (
-        <div key={source} className="my-4">
-          <label className="pr-2">
-            <input
-              type="radio"
-              name="source"
-              value={source}
-              checked={source === currentSource}
-              onChange={() => setCurrentSource(source)}
-              className="mr-1"
-            />
-            {label}
-          </label>
-          {input}
-        </div>
-      ))}
+      <RadioButton
+        name="source"
+        value={MugshotSource.None}
+        checked={state.source === MugshotSource.None}
+        onChange={radioHandler(MugshotSource.None)}
+        label="None"
+      />
+      <RadioButton
+        name="source"
+        value={MugshotSource.Preset}
+        checked={state.source === MugshotSource.Preset}
+        onChange={radioHandler(MugshotSource.Preset)}
+        label="Preset"
+      >
+        <PresetInput
+          onChange={(value: string) => {
+            dispatch({ kind: MugshotSource.Preset, value: value });
+          }}
+          disabled={state.source !== MugshotSource.Preset}
+        />
+      </RadioButton>
+      <RadioButton
+        name="source"
+        value={MugshotSource.URL}
+        checked={state.source === MugshotSource.URL}
+        onChange={radioHandler(MugshotSource.URL)}
+        label="URL"
+      >
+        <URLInput
+          onChange={(value: string) =>
+            dispatch({ kind: MugshotSource.URL, value: value })
+          }
+          disabled={state.source !== MugshotSource.URL}
+        />
+      </RadioButton>
+      <RadioButton
+        name="source"
+        value={MugshotSource.File}
+        checked={state.source === MugshotSource.File}
+        onChange={radioHandler(MugshotSource.File)}
+        label="File"
+      >
+        <FileInput
+          onChange={(value: string) =>
+            dispatch({ kind: MugshotSource.File, value: value })
+          }
+          disabled={state.source !== MugshotSource.File}
+        />
+      </RadioButton>
     </div>
   );
 };
 
 interface FormProps {
-  article: ArticleProps;
-  headlines: string[];
-  pundits: string[];
-  onChange: React.Dispatch<React.SetStateAction<ArticleProps>>;
+  headline: string;
+  pundit: string;
+  mugshot: string;
+  onChange: (key: "headline" | "pundit" | "mugshot", value: string) => void;
 }
 
-const Form: React.FC<FormProps> = ({
-  article,
-  onChange,
-  headlines,
-  pundits,
-}: FormProps) => {
-  const handleHeadlineChange = (headline: string) => {
-    onChange((article) => ({ ...article, headline: headline }));
-  };
-
-  const handlePunditChange = (pundit: string) => {
-    onChange((article) => ({ ...article, pundit: pundit }));
-  };
-
-  const handleMugshotChange = useCallback(
-    (mugshot: string) => {
-      onChange((article) => ({ ...article, mugshot: mugshot }));
-    },
+const Form: React.FC<FormProps> = ({ headline, pundit, onChange }) => {
+  const headlineChangeHandler = useCallback(
+    (value: string) => onChange("headline", value),
     [onChange]
   );
 
+  const punditChangeHandler = useCallback(
+    (value: string) => onChange("pundit", value),
+    [onChange]
+  );
+
+  const mugshotChangeHandler = useCallback(
+    (value: string) => onChange("mugshot", value),
+    [onChange]
+  );
   return (
-    <form className=" border-t border-b lg:border-l lg:border-r px-4 p-4 my-4 text-lg">
-      <h2 className="font-bold mb-1">Headline</h2>
-      <RandomTextInput
-        onChange={handleHeadlineChange}
-        value={article.headline}
-        data={headlines}
-      />
-
-      <h2 className="font-bold mt-4 mb-1">Pundit Name</h2>
-      <RandomTextInput
-        onChange={handlePunditChange}
-        value={article.pundit}
-        data={pundits}
-      />
-
-      <h2 className="font-bold mt-4 mb-1">Pundit Mugshot</h2>
-      <MugshotInput onChange={handleMugshotChange} />
+    <form>
+      <Field label="Hot take">
+        <TextInput value={headline} onChange={headlineChangeHandler} />
+      </Field>
+      <Field label="Pundit">
+        <TextInput value={pundit} onChange={punditChangeHandler} />
+      </Field>
+      <Field label="Mugshot">
+        <MugshotInput onChange={mugshotChangeHandler} />
+      </Field>
     </form>
   );
 };
