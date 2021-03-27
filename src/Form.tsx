@@ -137,11 +137,13 @@ const RadioButton: React.FC<RadioButtonProps> = ({
 
 interface InputProps {
   onChange: (value: string) => void;
+  value?: string;
   disabled: boolean;
 }
 
 const PresetInput: React.FC<InputProps> = ({
   onChange,
+  value,
   disabled,
 }: InputProps) => (
   <select
@@ -149,6 +151,7 @@ const PresetInput: React.FC<InputProps> = ({
       onChange(e.target.value)
     }
     disabled={disabled}
+    value={value}
   >
     {presets.map(([name, value], i) => (
       <option key={i} value={value}>
@@ -272,13 +275,13 @@ const MugshotInput: React.FC<MugshotInputProps> = ({ onChange }) => {
     }
   };
 
-  // Default to the first preset
+  // Default to laughing pepe
   const initialState: State = {
-    current: presets[0][1],
+    current: presets[1][1],
     source: MugshotSource.Preset,
     values: {
       none: "",
-      preset: presets[0][1],
+      preset: presets[1][1],
       file: "",
       url: "",
     },
@@ -316,6 +319,7 @@ const MugshotInput: React.FC<MugshotInputProps> = ({ onChange }) => {
           onChange={(value: string) => {
             dispatch({ kind: MugshotSource.Preset, value: value });
           }}
+          value={state.values.preset}
           disabled={state.source !== MugshotSource.Preset}
         />
       </RadioButton>
@@ -330,6 +334,7 @@ const MugshotInput: React.FC<MugshotInputProps> = ({ onChange }) => {
           onChange={(value: string) =>
             dispatch({ kind: MugshotSource.URL, value: value })
           }
+          value={state.values.url}
           disabled={state.source !== MugshotSource.URL}
         />
       </RadioButton>
