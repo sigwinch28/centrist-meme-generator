@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ArticleProps } from "./Article";
 import Button from "./Button";
-import pepe from "./images/pepe.png";
+import pepeSad from "./images/pepe-sad.png";
+import pepeLaugh from "./images/pepe-laugh.png";
 
 interface InputProps {
   onChange: (value: string) => void;
@@ -64,14 +65,17 @@ interface MugshotInputProps {
 enum MugshotInputSource {
   None = 0,
   File,
-  Pepe,
+  PepeLaugh,
+  PepeSad,
   URL,
 }
 
 const MugshotInput: React.FC<MugshotInputProps> = ({
   onChange,
 }: MugshotInputProps) => {
-  const [currentSource, setCurrentSource] = useState(MugshotInputSource.Pepe);
+  const [currentSource, setCurrentSource] = useState(
+    MugshotInputSource.PepeLaugh
+  );
   const [url, setUrl] = useState("");
   const [file, setFile] = useState("");
 
@@ -80,8 +84,11 @@ const MugshotInput: React.FC<MugshotInputProps> = ({
       case MugshotInputSource.None:
         onChange("");
         break;
-      case MugshotInputSource.Pepe:
-        onChange(pepe);
+      case MugshotInputSource.PepeLaugh:
+        onChange(pepeLaugh);
+        break;
+      case MugshotInputSource.PepeSad:
+        onChange(pepeSad);
         break;
       case MugshotInputSource.File:
         onChange(file);
@@ -99,7 +106,12 @@ const MugshotInput: React.FC<MugshotInputProps> = ({
       input: null,
     },
     {
-      source: MugshotInputSource.Pepe,
+      source: MugshotInputSource.PepeLaugh,
+      label: "Lauging Pepe",
+      input: null,
+    },
+    {
+      source: MugshotInputSource.PepeSad,
       label: "Sad Pepe",
       input: null,
     },
@@ -127,6 +139,9 @@ const MugshotInput: React.FC<MugshotInputProps> = ({
 
   return (
     <div>
+      <p className="italic">
+        Please use an image with a transparent background
+      </p>
       {inputs.map(({ source, label, input }) => (
         <div key={source} className="my-4">
           <label className="pr-2">

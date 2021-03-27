@@ -24,8 +24,8 @@ const links = [
 
 const App: React.FC = () => {
   const [article, setArticle] = useState({
-    headline: "I would be 20 points ahead",
-    pundit: "Pepe",
+    headline: "ouuuh i just got 20 points ahead",
+    pundit: "Pepe the Frog",
     mugshot: "",
   });
 
@@ -51,7 +51,7 @@ const App: React.FC = () => {
         </div>
       </header>
       <main className="mx-auto lg:ml-4 lg:ml-20 container min-w-article">
-        <div className="bg-centrist-header">
+        <div className="bg-centrist-header py-2">
           <div ref={articleRef} className="inline-block">
             <Article {...article} />
           </div>
