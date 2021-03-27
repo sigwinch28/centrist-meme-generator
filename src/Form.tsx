@@ -9,6 +9,13 @@ const presets: [string, string][] = [
   ["Laughing Pepe", pepeLaugh],
 ];
 
+const headlines = ["ouuuh i just got 20 points ahead", "Ding Dong x"];
+const pundits = ["Pepe the Frog", "Your Mum", "Your Da", "Keith", "Kieth"];
+
+function randomElement<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 interface FieldProps {
   label: React.ReactNode;
 }
@@ -21,7 +28,7 @@ const Field: React.FC<FieldProps> = ({ label, children }) => (
 );
 
 interface TextInputProps {
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
   disabled?: boolean;
   value?: string;
 }
@@ -39,6 +46,64 @@ const TextInput: React.FC<TextInputProps> = ({ onChange, ...props }) => (
     {...props}
   />
 );
+
+interface RandomTextInputProps extends TextInputProps {
+  onClick: () => void;
+}
+
+const RandomTextInput: React.FC<RandomTextInputProps> = ({
+  onClick,
+  onChange,
+  ...props
+}) => {
+  const [tainted, setTainted] = useState(false);
+
+  const inputHandler = (value: string) => {
+    setTainted(true);
+    onChange(value);
+  };
+
+  const buttonHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!tainted || window.confirm("Are you sure?")) {
+      setTainted(false);
+      onClick();
+    }
+  };
+
+  return (
+    <span>
+      <TextInput {...props} onChange={inputHandler}></TextInput>
+      <Button
+        disabled={props.disabled}
+        onClick={buttonHandler}
+        className="ml-4"
+      >
+        Random
+      </Button>
+    </span>
+  );
+};
+
+const HeadlineInput: React.FC<TextInputProps> = ({ onChange, ...props }) => {
+  const clickHandler = () => {
+    onChange(randomElement(headlines));
+  };
+
+  return (
+    <RandomTextInput {...props} onChange={onChange} onClick={clickHandler} />
+  );
+};
+
+const PunditInput: React.FC<TextInputProps> = ({ onChange, ...props }) => {
+  const clickHandler = () => {
+    onChange(randomElement(pundits));
+  };
+
+  return (
+    <RandomTextInput {...props} onChange={onChange} onClick={clickHandler} />
+  );
+};
 
 interface RadioButtonProps {
   name: string;
@@ -308,13 +373,14 @@ const Form: React.FC<FormProps> = ({ headline, pundit, onChange }) => {
     (value: string) => onChange("mugshot", value),
     [onChange]
   );
+
   return (
     <form>
       <Field label="Hot take">
-        <TextInput value={headline} onChange={headlineChangeHandler} />
+        <HeadlineInput value={headline} onChange={headlineChangeHandler} />
       </Field>
       <Field label="Pundit">
-        <TextInput value={pundit} onChange={punditChangeHandler} />
+        <PunditInput value={pundit} onChange={punditChangeHandler} />
       </Field>
       <Field label="Mugshot">
         <MugshotInput onChange={mugshotChangeHandler} />
