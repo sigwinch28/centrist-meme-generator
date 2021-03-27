@@ -140,7 +140,8 @@ const MugshotInput: React.FC<MugshotInputProps> = ({
   return (
     <div>
       <p className="italic">
-        Please use an image with a transparent background
+        Please use an image with a transparent background. Pepes don't appear to
+        work on mobile. Shrug.
       </p>
       {inputs.map(({ source, label, input }) => (
         <div key={source} className="my-4">
